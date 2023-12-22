@@ -1,6 +1,7 @@
 from flask import Flask, json
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
+import re
 
 # inicializar banco de dados em memória
 app = Flask(__name__)
@@ -66,14 +67,19 @@ def get_producers():
                 min_index = intervalos.idxmin()
                 max_index = intervalos.idxmax()
 
-                # Obtém as informações para o mínimo intervalo
-                infos = {
-                    'producer': producer,
-                    'interval': int(intervalos[max_index]),
-                    'previousWin': int(df.at[min_index, 'year']),
-                    'followingWin': int(df.at[max_index, 'year'])
-                }
-                lista_intervalo.append(infos)
+                # Divide a string de produtores usando "," e "and" como delimitadores
+                lista_producers = [p.strip() for p in re.split(r',|and', producer)]
+
+                # Itera sobre os produtores divididos
+                for producer_individual in lista_producers:
+                    # Obtém as informações para o mínimo intervalo
+                    infos = {
+                        'producer': producer_individual,
+                        'interval': int(intervalos[max_index]),
+                        'previousWin': int(df.at[min_index, 'year']),
+                        'followingWin': int(df.at[max_index, 'year'])
+                    }
+                    lista_intervalo.append(infos)
 
         # Ordena a lista por 'interval'
         lista_intervalo = sorted(lista_intervalo, key=lambda x: x['interval'])
